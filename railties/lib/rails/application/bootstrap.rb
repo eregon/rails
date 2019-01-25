@@ -81,6 +81,13 @@ INFO
         ActiveSupport.run_load_hooks(:before_initialize, app)
       end
 
+      initializer :let_zeitwerk_take_over do
+        if config.autoloader == :zeitwerk
+          require "active_support/dependencies/zeitwerk_integration"
+          ActiveSupport::Dependencies::ZeitwerkIntegration.take_over
+        end
+      end
+
       initializer :set_secrets_root, group: :all do
         Rails::Secrets.root = root
       end

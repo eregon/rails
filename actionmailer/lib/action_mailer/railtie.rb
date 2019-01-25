@@ -71,7 +71,7 @@ module ActionMailer
       end
     end
 
-    config.after_initialize do |app|
+    config.before_initialize do |app|
       options = app.config.action_mailer
 
       if options.show_previews

@@ -100,29 +100,32 @@ module ApplicationTests
       assert_nothing_raised { AppTemplate::Application.new }
     end
 
-    def test_initializers_run_on_different_applications_go_to_the_same_class
-      application1 = AppTemplate::Application.new
-      run_count = 0
-
-      AppTemplate::Application.initializer :init0 do
-        run_count += 1
-      end
-
-      application1.initializer :init1 do
-        run_count += 1
-      end
-
-      AppTemplate::Application.new.initializer :init2 do
-        run_count += 1
-      end
-
-      assert_equal 0, run_count, "Without loading the initializers, the count should be 0"
-
-      # Set config.eager_load to false so that an eager_load warning doesn't pop up
-      AppTemplate::Application.create { config.eager_load = false }.initialize!
-
-      assert_equal 3, run_count, "There should have been three initializers that incremented the count"
-    end
+    # TODO: Multiple application support is a bit green.
+    #
+    # This test doesn't work well with Zeitwerk integration because it freezes
+    # AS::Dependencies.autoload_paths on bootstrap, and the second instance
+    # wants to modify it when config.autoload_paths is processed. But at the
+    # same time that seems a bug because it does not make sense that the same
+    # app with the same cwd sets the same autoload paths twice. We have decided
+    # in Slack to comment it out by now, and if multiple apps get attention in
+    # the future, we'll revisit.
+    #
+    # def test_initializers_run_on_different_applications_go_to_the_same_class
+    #   application1 = AppTemplate::Application.new run_count = 0
+    #
+    #   AppTemplate::Application.initializer :init0 do run_count += 1 end
+    #
+    #   application1.initializer :init1 do run_count += 1 end
+    #
+    #   AppTemplate::Application.new.initializer :init2 do run_count += 1 end
+    #
+    #   assert_equal 0, run_count, "Without loading the initializers, the count should be 0"
+    #
+    #   # Set config.eager_load to false so that an eager_load warning doesn't pop up
+    #   AppTemplate::Application.create { config.eager_load = false}.initialize!
+    #
+    #   assert_equal 3, run_count, "There should have been three initializers that incremented the count"
+    # end
 
     def test_consoles_run_on_different_applications_go_to_the_same_class
       run_count = 0

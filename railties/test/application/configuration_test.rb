@@ -1157,6 +1157,21 @@ module ApplicationTests
       end
     end
 
+    test "autoloader & autoloader=" do
+      app "development"
+
+      config = Rails.application.configuration
+      assert_instance_of Zeitwerk::Loader, Rails.autoloader
+
+      config.autoloader = :classic
+      assert_nil Rails.autoloader
+
+      config.autoloader = :zeitwerk
+      assert_instance_of Zeitwerk::Loader, Rails.autoloader
+
+      assert_raises(ArgumentError) { config.autoloader = :unknown }
+    end
+
     test "config.action_view.cache_template_loading with cache_classes default" do
       add_to_config "config.cache_classes = true"
 
