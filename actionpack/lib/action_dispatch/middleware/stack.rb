@@ -3,6 +3,13 @@
 require "active_support/inflector/methods"
 require "active_support/dependencies"
 
+class Module
+  unless respond_to?(:ruby2_keywords, true)
+    def self.ruby2_keywords(*)
+    end
+  end
+end
+
 module ActionDispatch
   class MiddlewareStack
     class Middleware
@@ -88,7 +95,7 @@ module ActionDispatch
       middlewares[i]
     end
 
-    def unshift(klass, *args, &block)
+    ruby2_keywords def unshift(klass, *args, &block)
       middlewares.unshift(build_middleware(klass, args, block))
     end
 
@@ -96,19 +103,19 @@ module ActionDispatch
       self.middlewares = other.middlewares.dup
     end
 
-    def insert(index, klass, *args, &block)
+    ruby2_keywords def insert(index, klass, *args, &block)
       index = assert_index(index, :before)
       middlewares.insert(index, build_middleware(klass, args, block))
     end
 
     alias_method :insert_before, :insert
 
-    def insert_after(index, *args, &block)
+    ruby2_keywords def insert_after(index, *args, &block)
       index = assert_index(index, :after)
       insert(index + 1, *args, &block)
     end
 
-    def swap(target, *args, &block)
+    ruby2_keywords def swap(target, *args, &block)
       index = assert_index(target, :before)
       insert(index, *args, &block)
       middlewares.delete_at(index + 1)
@@ -118,7 +125,7 @@ module ActionDispatch
       middlewares.delete_if { |m| m.klass == target }
     end
 
-    def use(klass, *args, &block)
+    ruby2_keywords def use(klass, *args, &block)
       middlewares.push(build_middleware(klass, args, block))
     end
 
