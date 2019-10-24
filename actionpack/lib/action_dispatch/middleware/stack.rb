@@ -103,14 +103,14 @@ module ActionDispatch
 
     alias_method :insert_before, :insert
 
-    def insert_after(index, *args, &block)
+    def insert_after(index, klass, *args, &block)
       index = assert_index(index, :after)
-      insert(index + 1, *args, &block)
+      insert(index + 1, klass, *args, &block)
     end
 
-    def swap(target, *args, &block)
+    def swap(target, klass, *args, &block)
       index = assert_index(target, :before)
-      insert(index, *args, &block)
+      insert(index, klass, *args, &block)
       middlewares.delete_at(index + 1)
     end
 
