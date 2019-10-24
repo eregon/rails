@@ -3,15 +3,23 @@
 require "active_support/inflector/methods"
 require "active_support/dependencies"
 
+class Module
+  unless respond_to?(:pass_keywords, true)
+    private def pass_keywords(*)
+    end
+  end
+end
+
 module ActionDispatch
   class MiddlewareStack
     class Middleware
       attr_reader :args, :block, :klass
 
-      def initialize(klass, args, block)
+      pass_keywords def initialize(klass, *args, &block)
         @klass = klass
         @args  = args
         @block = block
+        @factory = -> app { klass.new(app, *args, &block) }
       end
 
       def name; klass.name; end
@@ -34,7 +42,7 @@ module ActionDispatch
       end
 
       def build(app)
-        klass.new(app, *args, &block)
+        @factory.call(app)
       end
 
       def build_instrumented(app)
@@ -88,27 +96,27 @@ module ActionDispatch
       middlewares[i]
     end
 
-    def unshift(klass, *args, &block)
-      middlewares.unshift(build_middleware(klass, args, block))
+    pass_keywords def unshift(klass, *args, &block)
+      middlewares.unshift(build_middleware(klass, *args, &block))
     end
 
     def initialize_copy(other)
       self.middlewares = other.middlewares.dup
     end
 
-    def insert(index, klass, *args, &block)
+    pass_keywords def insert(index, klass, *args, &block)
       index = assert_index(index, :before)
-      middlewares.insert(index, build_middleware(klass, args, block))
+      middlewares.insert(index, build_middleware(klass, *args, &block))
     end
 
     alias_method :insert_before, :insert
 
-    def insert_after(index, klass, *args, &block)
+    pass_keywords def insert_after(index, klass, *args, &block)
       index = assert_index(index, :after)
       insert(index + 1, klass, *args, &block)
     end
 
-    def swap(target, klass, *args, &block)
+    pass_keywords def swap(target, klass, *args, &block)
       index = assert_index(target, :before)
       insert(index, klass, *args, &block)
       middlewares.delete_at(index + 1)
@@ -118,8 +126,8 @@ module ActionDispatch
       middlewares.delete_if { |m| m.klass == target }
     end
 
-    def use(klass, *args, &block)
-      middlewares.push(build_middleware(klass, args, block))
+    pass_keywords def use(klass, *args, &block)
+      middlewares.push(build_middleware(klass, *args, &block))
     end
 
     def build(app = nil, &block)
@@ -140,8 +148,8 @@ module ActionDispatch
         i
       end
 
-      def build_middleware(klass, args, block)
-        Middleware.new(klass, args, block)
+      pass_keywords def build_middleware(klass, *args, &block)
+        Middleware.new(klass, *args, &block)
       end
   end
 end

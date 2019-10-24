@@ -148,7 +148,7 @@ class MiddlewareStackTest < ActiveSupport::TestCase
   end
 
   test "includes a middleware" do
-    assert_equal true, @stack.include?(ActionDispatch::MiddlewareStack::Middleware.new(BarMiddleware, nil, nil))
+    assert_equal true, @stack.include?(ActionDispatch::MiddlewareStack::Middleware.new(BarMiddleware))
   end
 
   test "works with keyword arguments" do
