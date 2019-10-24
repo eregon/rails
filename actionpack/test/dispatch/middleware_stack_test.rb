@@ -17,6 +17,14 @@ class MiddlewareStackTest < ActiveSupport::TestCase
   class BarMiddleware < Base; end
   class BazMiddleware < Base; end
   class HiyaMiddleware < Base; end
+  class KWMiddleware < Base
+    def initialize(app, **kwargs)
+      super(app)
+      raise unless kwargs[:foo] == :bar
+    end
+  end
+  class KW2Middleware < KWMiddleware; end
+  class KW3Middleware < KWMiddleware; end
   class BlockMiddleware < Base
     attr_reader :block
     def initialize(app, &block)
@@ -49,7 +57,8 @@ class MiddlewareStackTest < ActiveSupport::TestCase
       @stack.use BazMiddleware, true, foo: "bar"
     end
     assert_equal BazMiddleware, @stack.last.klass
-    assert_equal([true, { foo: "bar" }], @stack.last.args)
+    assert_equal([true, {foo: "bar"}], @stack.last.args)
+    # @stack.build
   end
 
   test "use should push middleware class with block arguments onto the stack" do
@@ -140,5 +149,13 @@ class MiddlewareStackTest < ActiveSupport::TestCase
 
   test "includes a middleware" do
     assert_equal true, @stack.include?(ActionDispatch::MiddlewareStack::Middleware.new(BarMiddleware, nil, nil))
+  end
+
+  test "works with keyword arguments" do
+    @stack.use KWMiddleware, foo: :bar
+    @stack.insert_before KWMiddleware, KW2Middleware, foo: :bar
+    @stack.insert_after KWMiddleware, KW3Middleware, foo: :bar
+    @stack.swap BarMiddleware, KW2Middleware, foo: :bar
+    assert_instance_of FooMiddleware, @stack.build
   end
 end
