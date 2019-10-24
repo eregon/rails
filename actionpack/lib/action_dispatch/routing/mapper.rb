@@ -346,7 +346,7 @@ module ActionDispatch
           end
 
           def split_to(to)
-            if /#/.match?(to)
+            if to && /#/.match?(to)
               to.split("#")
             else
               []
