@@ -243,6 +243,18 @@ module ActionView
           find_node_by_id(node, node_id)
         end
 
+      if found
+        node = found
+        first_lineno, first_column, last_lineno, last_column = node.first_lineno, node.first_column, node.last_lineno, node.last_column
+
+        nodes = Prism.parse(compiled_source).value.tunnel(first_lineno, first_column)
+        nodes = nodes.select { |n|
+          n.start_line == first_lineno && n.start_column == first_column && n.end_line == last_lineno && n.end_column == last_column
+        }
+        found = nodes.last
+        # p [:found, found.class]
+      end
+
       ErrorHighlight.spot(found) if found
     end
 
